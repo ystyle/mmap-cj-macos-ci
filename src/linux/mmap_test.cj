@@ -4,7 +4,7 @@ package mmapcj
 
 import std.fs.*
 import std.unittest.*
-import std.unittest.common.*
+import std.unittest.testmacro.*
 
 @Test
 public func testMmapBasic(): Unit {
