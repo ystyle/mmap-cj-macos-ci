@@ -37,10 +37,10 @@ foreign func MapViewOfFile(hFileMappingObject: CPointer<Unit>, dwDesiredAccess: 
 foreign func FlushViewOfFile(lpBaseAddress: CPointer<Unit>, dwNumberOfBytesToFlush: UIntNative): Int32
 
 @FastNative
-foreign func UnmapViewOfFile(lpBaseAddress: CPointer<Unit): Int32
+foreign func UnmapViewOfFile(lpBaseAddress: CPointer<Unit>): Int32
 
 @FastNative
-foreign func CloseHandle(hObject: CPointer<Unit): Int32
+foreign func CloseHandle(hObject: CPointer<Unit>): Int32
 
 @FastNative
 foreign func memcpy(dest: CPointer<UInt8>, src: CPointer<UInt8>, n: UIntNative): CPointer<UInt8>
