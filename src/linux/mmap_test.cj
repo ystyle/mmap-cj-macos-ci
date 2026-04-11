@@ -3,6 +3,8 @@ features {os.linux}
 package mmapcj
 
 import std.fs.*
+import std.unittest.*
+import std.unittest.common.*
 
 @Test
 public func testMmapBasic(): Unit {
