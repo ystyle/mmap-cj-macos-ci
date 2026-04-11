@@ -1,0 +1,42 @@
+[profile]
+experimental = true
+
+[package]
+  cjc-version = "1.1.0"
+  name = "mmapcj"
+  organization = ""
+  description = "跨平台内存映射文件库 (Linux/macOS/Windows)"
+  version = "1.0.0"
+  target-dir = ""
+  script-dir = ""
+  output-type = "static"
+  compile-option = "-O2"
+  override-compile-option = ""
+  link-option = ""
+  license = ["Apache-2.0"]
+  authors = ["ystyle"]
+
+[dependencies]
+
+[[source-set]]
+name = "common"
+src-dir = "./src/common"
+features = []
+
+[[source-set]]
+name = "linux"
+src-dir = "./src/linux"
+features = ["os.linux"]
+product = true
+
+[[source-set]]
+name = "darwin"
+src-dir = "./src/darwin"
+features = ["os.darwin"]
+product = true
+
+[[source-set]]
+name = "windows"
+src-dir = "./src/windows"
+features = ["os.windows"]
+product = true
