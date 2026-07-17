@@ -2,19 +2,10 @@ features {os.windows}
 
 package mmapcj
 
-/**
- * Windows mmap 实现
- * 
- * Windows 使用 CreateFileMapping/MapViewOfFile API
- */
-
-// Windows 常量
 private const PAGE_READONLY: UInt32 = 0x02
 private const PAGE_READWRITE: UInt32 = 0x04
-private const PAGE_WRITECOPY: UInt32 = 0x08
 
 private const FILE_MAP_READ: UInt32 = 0x04
-private const FILE_MAP_WRITE: UInt32 = 0x02
 private const FILE_MAP_ALL_ACCESS: UInt32 = 0xF001F
 
 private const GENERIC_READ: UInt32 = 0x80000000
@@ -23,12 +14,11 @@ private const CREATE_ALWAYS: UInt32 = 2
 private const OPEN_EXISTING: UInt32 = 3
 private const FILE_ATTRIBUTE_NORMAL: UInt32 = 0x80
 
-// FFI 函数 (Windows API)
 @FastNative
-foreign func CreateFileA(lpFileName: CPointer<UInt8>, dwDesiredAccess: UInt32, dwShareMode: UInt32, lpSecurityAttributes: CPointer<Unit>, dwCreationDisposition: UInt32, dwFlagsAndAttributes: UInt32, hTemplateFile: CPointer<Unit>): CPointer<Unit>
+foreign func CreateFileW(lpFileName: CPointer<UInt16>, dwDesiredAccess: UInt32, dwShareMode: UInt32, lpSecurityAttributes: CPointer<Unit>, dwCreationDisposition: UInt32, dwFlagsAndAttributes: UInt32, hTemplateFile: CPointer<Unit>): CPointer<Unit>
 
 @FastNative
-foreign func CreateFileMappingA(hFile: CPointer<Unit>, lpAttributes: CPointer<Unit>, flProtect: UInt32, dwMaximumSizeHigh: UInt32, dwMaximumSizeLow: UInt32, lpName: CPointer<UInt8>): CPointer<Unit>
+foreign func CreateFileMappingW(hFile: CPointer<Unit>, lpAttributes: CPointer<Unit>, flProtect: UInt32, dwMaximumSizeHigh: UInt32, dwMaximumSizeLow: UInt32, lpName: CPointer<UInt16>): CPointer<Unit>
 
 @FastNative
 foreign func MapViewOfFile(hFileMappingObject: CPointer<Unit>, dwDesiredAccess: UInt32, dwFileOffsetHigh: UInt32, dwFileOffsetLow: UInt32, dwNumberOfBytesToMap: UIntNative): CPointer<Unit>
@@ -44,6 +34,64 @@ foreign func CloseHandle(hObject: CPointer<Unit>): Int32
 
 @FastNative
 foreign func memcpy(dest: CPointer<UInt8>, src: CPointer<UInt8>, n: UIntNative): CPointer<UInt8>
+
+private func utf8ToUtf16(s: String): Array<UInt16> {
+    let bytes = s.toArray()
+    let n = bytes.size
+
+    var count: Int64 = 0
+    var i: Int64 = 0
+    while (i < n) {
+        let b = UInt32(bytes[i])
+        if ((b & UInt32(0x80)) == UInt32(0)) {
+            i += 1
+        } else if ((b & UInt32(0xE0)) == UInt32(0xC0)) {
+            i += 2
+        } else if ((b & UInt32(0xF0)) == UInt32(0xE0)) {
+            i += 3
+        } else {
+            i += 4
+            count += 1
+        }
+        count += 1
+    }
+
+    let result = Array<UInt16>(count + 1, repeat: UInt16(0))
+
+    i = 0
+    var j: Int64 = 0
+    while (i < n) {
+        let b0 = UInt32(bytes[i])
+        if ((b0 & UInt32(0x80)) == UInt32(0)) {
+            result[j] = UInt16(b0)
+            i += 1
+        } else if ((b0 & UInt32(0xE0)) == UInt32(0xC0)) {
+            let b1 = UInt32(bytes[i + 1])
+            let cp = (b0 & UInt32(0x1F)) << 6 | (b1 & UInt32(0x3F))
+            result[j] = UInt16(cp)
+            i += 2
+        } else if ((b0 & UInt32(0xF0)) == UInt32(0xE0)) {
+            let b1 = UInt32(bytes[i + 1])
+            let b2 = UInt32(bytes[i + 2])
+            let cp = (b0 & UInt32(0x0F)) << 12 | (b1 & UInt32(0x3F)) << 6 | (b2 & UInt32(0x3F))
+            result[j] = UInt16(cp)
+            i += 3
+        } else {
+            let b1 = UInt32(bytes[i + 1])
+            let b2 = UInt32(bytes[i + 2])
+            let b3 = UInt32(bytes[i + 3])
+            let cp = (b0 & UInt32(0x07)) << 18 | (b1 & UInt32(0x3F)) << 12 | (b2 & UInt32(0x3F)) << 6 | (b3 & UInt32(0x3F))
+            let cp2 = cp - UInt32(0x10000)
+            result[j] = UInt16(UInt32(0xD800) | (cp2 >> 10))
+            j += 1
+            result[j] = UInt16(UInt32(0xDC00) | (cp2 & UInt32(0x3FF)))
+            i += 4
+        }
+        j += 1
+    }
+
+    result
+}
 
 public specific class MmapFile {
     private let _path: String
@@ -69,9 +117,10 @@ public specific class MmapFile {
     private unsafe func initInternal(path: String, size: Int64, readOnly: Bool): Unit {
         let access = if (readOnly) { GENERIC_READ } else { GENERIC_READ | GENERIC_WRITE }
         let creation = if (readOnly) { OPEN_EXISTING } else { CREATE_ALWAYS }
-        
-        let pathHandle = acquireArrayRawData(path.toArray())
-        this.hFile = CreateFileA(pathHandle.pointer, access, 0u32, CPointer<Unit>(), creation, FILE_ATTRIBUTE_NORMAL, CPointer<Unit>())
+
+        let utf16 = utf8ToUtf16(path)
+        let pathHandle = acquireArrayRawData(utf16)
+        this.hFile = CreateFileW(CPointer<UInt16>(pathHandle.pointer), access, 0u32, CPointer<Unit>(), creation, FILE_ATTRIBUTE_NORMAL, CPointer<Unit>())
         releaseArrayRawData(pathHandle)
         
         if (hFile.isNull()) {
@@ -84,7 +133,7 @@ public specific class MmapFile {
         let sizeHigh = UInt32((size >> 32) & 0xFFFFFFFF)
         let sizeLow = UInt32(size & 0xFFFFFFFF)
         
-        this.hMap = CreateFileMappingA(hFile, CPointer<Unit>(), protect, sizeHigh, sizeLow, CPointer<UInt8>())
+        this.hMap = CreateFileMappingW(hFile, CPointer<Unit>(), protect, sizeHigh, sizeLow, CPointer<UInt16>())
         
         if (hMap.isNull()) {
             CloseHandle(hFile)
@@ -188,8 +237,3 @@ public specific class MmapFile {
     }
 }
 
-public specific class MmapException <: Exception {
-    public specific init(message: String) {
-        super(message)
-    }
-}

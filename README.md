@@ -9,11 +9,17 @@
 - 数据同步到磁盘（msync/FlushViewOfFile）
 - 自动资源管理
 
-## 安装
+## 构建
 
-```toml
-[dependencies]
-mmapcj = { git = "https://atomgit.com/ystyle/mmap-cj" }
+```shell
+# Linux
+cjpm build --enable-features=os.linux
+
+# macOS
+cjpm build --enable-features=os.darwin
+
+# Windows（交叉编译）
+cjpm build --enable-features=os.windows --target=x86_64-w64-mingw32
 ```
 
 ## 使用
@@ -21,26 +27,18 @@ mmapcj = { git = "https://atomgit.com/ystyle/mmap-cj" }
 ```cangjie
 import mmapcj.MmapFile
 
-// 创建内存映射文件
-let mmapFile = MmapFile("/path/to/file", 1024 * 1024)  // 1MB
+let mmapFile = MmapFile("/path/to/file", 1024 * 1024)
 
-// 写入数据
 mmapFile.write("Hello World".toArray(), 0)
-
-// 同步到磁盘
 mmapFile.sync()
 
-// 读取数据
 let data = mmapFile.read(0, 11)
 println(String.fromUtf8(data))
 
-// 关闭
 mmapFile.close()
 ```
 
 ## API
-
-### MmapFile
 
 | 方法 | 说明 |
 |------|------|
@@ -59,12 +57,30 @@ mmapFile.close()
 |------|-----|
 | Linux | mmap/munmap/msync |
 | macOS | mmap/munmap/msync |
-| Windows | CreateFileMapping/MapViewOfFile/FlushViewOfFile |
+| Windows | CreateFileW/CreateFileMappingW/FlushViewOfFile |
 
 ## 测试
 
 ```shell
-cjpm test
+# Linux
+cjpm test --enable-features=os.linux
+
+# macOS
+cjpm test --enable-features=os.darwin
+
+# Windows
+cjpm test --enable-features=os.windows
+```
+
+## 项目结构
+
+```
+mmap-cj/
+├── cjpm.toml
+├── common/mmap.cj          公共接口定义
+├── linux/mmap_impl.cj      Linux 实现
+├── darwin/mmap_impl.cj     macOS 实现
+└── windows/mmap_impl.cj    Windows 实现（UTF-16 路径）
 ```
 
 ## 许可证

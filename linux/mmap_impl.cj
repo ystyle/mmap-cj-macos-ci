@@ -1,14 +1,12 @@
-features {os.darwin}
+features {os.linux}
 
 package mmapcj
 
 /**
- * macOS mmap 实现
- * 
- * macOS 的 mmap API 与 Linux 几乎相同
+ * Linux mmap 实现
  */
 
-// mmap 常量 (macOS)
+// mmap 常量
 private const PROT_READ: Int32 = 0x1
 private const PROT_WRITE: Int32 = 0x2
 private const MAP_SHARED: Int32 = 0x01
@@ -16,8 +14,8 @@ private const MS_SYNC: Int32 = 0x0
 
 private const O_RDONLY: Int32 = 0
 private const O_RDWR: Int32 = 2
-private const O_CREAT: Int32 = 0x200
-private const O_TRUNC: Int32 = 0x400
+private const O_CREAT: Int32 = 64
+private const O_TRUNC: Int32 = 512
 
 // FFI 函数
 @FastNative
@@ -170,8 +168,3 @@ public specific class MmapFile {
     }
 }
 
-public specific class MmapException <: Exception {
-    public specific init(message: String) {
-        super(message)
-    }
-}
