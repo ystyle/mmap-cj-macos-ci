@@ -4,12 +4,18 @@ package mmapcj
 
 import std.unittest.*
 import std.unittest.testmacro.*
+import std.env.getVariable
 
 @Test
 public class MmapFileTests {
+    private func tmpPath(name: String): String {
+        let tempDir = getVariable("TEMP") ?? getVariable("TMP") ?? "C:\\Windows\\Temp"
+        tempDir + "\\" + name
+    }
+
     @TestCase
     public func testWriteAndRead(): Unit {
-        let path = "/tmp/mmapcj_test_write_read.tmp"
+        let path = tmpPath("mmapcj_test_write_read.tmp")
         let size: Int64 = 4096
         let mf = MmapFile(path, size)
         let data = "Hello mmap!".toArray()
@@ -21,7 +27,7 @@ public class MmapFileTests {
 
     @TestCase
     public func testSync(): Unit {
-        let path = "/tmp/mmapcj_test_sync.tmp"
+        let path = tmpPath("mmapcj_test_sync.tmp")
         let size: Int64 = 4096
         let mf = MmapFile(path, size)
         mf.write("sync test".toArray(), 0)
@@ -33,7 +39,7 @@ public class MmapFileTests {
 
     @TestCase
     public func testClosed(): Unit {
-        let path = "/tmp/mmapcj_test_closed.tmp"
+        let path = tmpPath("mmapcj_test_closed.tmp")
         let mf = MmapFile(path, 4096)
         @Expect(false, mf.closed)
         mf.close()
@@ -42,7 +48,7 @@ public class MmapFileTests {
 
     @TestCase
     public func testReadOnly(): Unit {
-        let path = "/tmp/mmapcj_test_readonly.tmp"
+        let path = tmpPath("mmapcj_test_readonly.tmp")
         let mf = MmapFile(path, 4096)
         mf.write("data".toArray(), 0)
         mf.close()
@@ -55,7 +61,7 @@ public class MmapFileTests {
 
     @TestCase
     public func testReadWriteAtOffset(): Unit {
-        let path = "/tmp/mmapcj_test_offset.tmp"
+        let path = tmpPath("mmapcj_test_offset.tmp")
         let size: Int64 = 4096
         let mf = MmapFile(path, size)
         mf.write("DEF".toArray(), 256)
@@ -72,7 +78,7 @@ public class MmapFileTests {
 
     @TestCase
     public func testOutOfBounds(): Unit {
-        let path = "/tmp/mmapcj_test_oob.tmp"
+        let path = tmpPath("mmapcj_test_oob.tmp")
         let mf = MmapFile(path, 128)
         mf.close()
     }

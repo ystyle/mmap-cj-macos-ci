@@ -209,6 +209,7 @@ public specific class MmapFile {
         
         unsafe {
             if (!addr.isNull()) {
+                FlushViewOfFile(addr, UIntNative(_size))
                 UnmapViewOfFile(addr)
             }
             if (!hMap.isNull()) {
