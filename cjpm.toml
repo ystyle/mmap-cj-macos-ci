@@ -15,6 +15,7 @@ experimental = true
   link-option = ""
   license = ["Apache-2.0"]
   authors = ["ystyle"]
+  repository = "https://atomgit.com/ystyle/mmap-cj"
 
 [dependencies]
 
