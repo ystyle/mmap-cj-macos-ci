@@ -21,4 +21,4 @@ jobs:
           version: auto            # 从 cjpm.toml 读取 cjc-version = "1.1.0"
 
       - name: Test (os.darwin)
-        run: cjpm test --enable-features=os.darwin
+        run: cjpm test            # @When[os == "macOS"] 自动选中 darwin 实现，无需 enable-features
