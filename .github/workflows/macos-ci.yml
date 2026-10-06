@@ -9,7 +9,8 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        os: [macos-13, macos-14]   # x86_64 (Intel) + arm64 (Apple Silicon)
+        os: [macos-14, macos-15-intel]   # arm64 (Apple Silicon) + x86_64 (Intel)
+                                         # macos-13 已进入退役期、长期排队，改用 macos-15-intel
     runs-on: ${{ matrix.os }}
     steps:
       - uses: actions/checkout@v4
