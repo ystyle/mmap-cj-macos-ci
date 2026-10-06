@@ -1,6 +1,3 @@
-[profile]
-experimental = true
-
 [package]
   cjc-version = "1.1.0"
   name = "mmapcj"
@@ -9,35 +6,14 @@ experimental = true
   version = "1.0.1"
   target-dir = ""
   script-dir = ""
+  src-dir = "src"
   output-type = "static"
   compile-option = "-O2"
   override-compile-option = ""
   link-option = ""
+  include = ["/src"]
   license = ["Apache-2.0"]
   authors = ["ystyle"]
   repository = "https://atomgit.com/ystyle/mmap-cj"
 
 [dependencies]
-
-[[source-set]]
-name = "common"
-src-dir = "./common"
-features = []
-
-[[source-set]]
-name = "linux"
-src-dir = "./linux"
-features = ["os.linux"]
-product = true
-
-[[source-set]]
-name = "darwin"
-src-dir = "./darwin"
-features = ["os.darwin"]
-product = true
-
-[[source-set]]
-name = "windows"
-src-dir = "./windows"
-features = ["os.windows"]
-product = true
