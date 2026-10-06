@@ -61,7 +61,9 @@ public specific class MmapFile {
     }
     
     private unsafe func initInternal(path: String, size: Int64, readOnly: Bool): Unit {
-        let flags = if (readOnly) { O_RDONLY } else { O_RDWR | O_CREAT | O_TRUNC }
+        // 注意：不加 O_TRUNC —— 读写打开已存在文件时必须保留其内容（复用既有映射文件、
+        // 崩溃恢复读遗留文件都依赖这一点）；大小统一由随后的 ftruncate(size) 调整。
+        let flags = if (readOnly) { O_RDONLY } else { O_RDWR | O_CREAT }
         
         let pathHandle = acquireArrayRawData(path.toArray())
         this.fd = open(pathHandle.pointer, flags, 0o644u32)

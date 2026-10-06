@@ -12,6 +12,7 @@ private const GENERIC_READ: UInt32 = 0x80000000
 private const GENERIC_WRITE: UInt32 = 0x40000000
 private const CREATE_ALWAYS: UInt32 = 2
 private const OPEN_EXISTING: UInt32 = 3
+private const OPEN_ALWAYS: UInt32 = 4
 private const FILE_ATTRIBUTE_NORMAL: UInt32 = 0x80
 
 @FastNative
@@ -116,7 +117,10 @@ public specific class MmapFile {
     
     private unsafe func initInternal(path: String, size: Int64, readOnly: Bool): Unit {
         let access = if (readOnly) { GENERIC_READ } else { GENERIC_READ | GENERIC_WRITE }
-        let creation = if (readOnly) { OPEN_EXISTING } else { CREATE_ALWAYS }
+        // 注意：用 OPEN_ALWAYS 而非 CREATE_ALWAYS —— 后者会清空已存在文件的内容；
+        // 读写打开必须保留既有内容（复用映射文件、崩溃恢复依赖这一点），
+        // 文件大小随后由 SetEndOfFile 统一调整。
+        let creation = if (readOnly) { OPEN_EXISTING } else { OPEN_ALWAYS }
 
         let utf16 = utf8ToUtf16(path)
         let pathHandle = acquireArrayRawData(utf16)
