@@ -9,8 +9,9 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        os: [macos-14, macos-15-intel]   # arm64 (Apple Silicon) + x86_64 (Intel)
-                                         # macos-13 已进入退役期、长期排队，改用 macos-15-intel
+        os: [macos-14]           # 仓颉 SDK 自 1.0.0 起只发布 darwin-aarch64：
+                                 # darwin-x64 仅存在于 0.53.x 与 1.1.0-beta.*，
+                                 # 因此 macOS 只能在 Apple Silicon runner 上验证
     runs-on: ${{ matrix.os }}
     steps:
       - uses: actions/checkout@v4
